@@ -3,7 +3,9 @@ import { Container, TransactionTypeContainer, RadioBox } from './styles';
 import closeImg from '../../assets/close.svg';
 import incomeImg from '../../assets/income.svg';
 import outcomeImg from '../../assets/outcome.svg';
-import { useState } from 'react';
+import { FormEvent, useContext, useState } from 'react';
+import { api } from '../../services/api';
+import { TransactionsContext } from '../../TransactionsContext';
 
 
 interface NewTransactionModalProps {
@@ -12,7 +14,30 @@ interface NewTransactionModalProps {
 }
 
 export function NewTransactionModal({isOpen, onRequestClose}: NewTransactionModalProps) {
+  const [title, setTitle] = useState('');
+  const [value, setValue] = useState(0);
   const [type, setType] = useState('deposit');
+  const [category, setCategory] = useState('');
+
+  const {createNewTransaction} = useContext(TransactionsContext);
+
+  async function handleCreateNewTransaction(event: FormEvent) {
+    event.preventDefault();
+
+    await createNewTransaction({
+      title,
+      value,
+      type,
+      category
+    });
+
+    setTitle('');
+    setValue(0);
+    setType('deposit');
+    setCategory('');
+
+    onRequestClose();
+  }
 
   return (
     <Modal
@@ -28,15 +53,17 @@ export function NewTransactionModal({isOpen, onRequestClose}: NewTransactionModa
       >
         <img src={closeImg} alt="fechar modal"/>
       </button>
-      <Container>
+      <Container onSubmit={handleCreateNewTransaction}>
         <h2>Cadastrar Transação</h2>
         <input
           placeholder="Título"
+          onChange={event => setTitle(event.target.value)}
         />
 
         <input
           type="number"
           placeholder="Valor"
+          onChange={event => setValue(Number(event.target.value))}
         />
 
         <TransactionTypeContainer>
@@ -63,6 +90,7 @@ export function NewTransactionModal({isOpen, onRequestClose}: NewTransactionModa
 
         <input
           placeholder="Categoria"
+          onChange={event => setCategory(event.target.value)}
         />
 
         <button type="submit">
